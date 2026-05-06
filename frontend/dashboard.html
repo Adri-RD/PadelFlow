@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PadelFlow — Reservas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #1D9E75;
+      --green-dark: #0F6E56;
+      --green-light: #E1F5EE;
+      --green-mid: #5DCAA5;
+      --text: #1a1a1a;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --bg: #f9faf8;
+      --card: #ffffff;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── NAVBAR ── */
+    nav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: var(--green);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 19px;
+      color: var(--text);
+    }
+    .nav-right {
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .nav-tab {
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: none;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .nav-tab:hover { background: var(--bg); color: var(--text); }
+    .nav-tab.active { background: var(--green-light); color: var(--green-dark); font-weight: 500; }
+    .user-pill {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--muted);
+    }
+    .avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--green-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 500;
+      color: var(--green-dark);
+    }
+    .btn-logout {
+      font-size: 12px;
+      color: var(--muted);
+      background: none; border: none;
+      cursor: pointer; padding: 4px 8px;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-logout:hover { background: #fee2e2; color: #991b1b; }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ── VIEWS ── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── STAT CARDS ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem 1.4rem;
+    }
+    .stat-card .num {
+      font-size: 28px;
+      font-weight: 300;
+      color: var(--text);
+    }
+    .stat-card .lbl {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+    .stat-card.highlight { border-color: var(--green-mid); }
+    .stat-card.highlight .num { color: var(--green); }
+
+    /* ── RESERVAR VIEW ── */
+    .section-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 10px;
+    }
+
+    .date-controls {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 1.2rem; flex-wrap: wrap;
+    }
+    .date-display {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .date-display .day-name {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--muted);
+      margin-left: 6px;
+    }
+    .btn-nav {
+      width: 32px; height: 32px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--text);
+      transition: all 0.15s;
+    }
+    .btn-nav:hover { border-color: var(--green); color: var(--green); }
+
+    .day-selector {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem;
+    }
+    .day-btn {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.15s;
+    }
+    .day-btn:hover { border-color: var(--green-mid); color: var(--green); }
+    .day-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+    .legend {
+      display: flex; gap: 16px; margin-bottom: 1rem; flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--muted);
+    }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 3px;
+    }
+
+    /* GRID */
+    .grid-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--border);
+    }
+    .grid {
+      display: grid;
+      gap: 1px;
+      background: var(--border);
+      min-width: 560px;
+    }
+    .grid-cell {
+      background: #fff;
+      padding: 10px 12px;
+      font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 44px;
+    }
+    .grid-cell.col-header {
+      background: #f4f6f4;
+      font-weight: 500;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .grid-cell.time-col {
+      justify-content: flex-end;
+      color: var(--muted);
+      font-size: 11px;
+      background: #f4f6f4;
+      padding-right: 12px;
+    }
+    .grid-cell.slot {
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .grid-cell.slot:hover { background: var(--green-light); }
+    .grid-cell.occupied { background: #f3f4f6; cursor: not-allowed; }
+    .grid-cell.occupied:hover { background: #f3f4f6; }
+    .grid-cell.mine { background: #dcfce7; cursor: pointer; }
+    .grid-cell.mine:hover { background: #bbf7d0; }
+
+    .slot-inner {
+      text-align: center; line-height: 1.3;
+    }
+    .slot-text { font-size: 11px; }
+    .slot-text.free { color: #d1d5db; }
+    .slot-text.occupied-t { color: #9ca3af; }
+    .slot-text.mine-t { color: #15803d; font-weight: 500; }
+
+    /* MODAL */
+    .modal-bg {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.3);
+      display: none; align-items: center; justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+    .modal-bg.open { display: flex; }
+    .modal-box {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 1.8rem;
+      width: 100%; max-width: 380px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    }
+    .modal-box h3 {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 1.2rem;
+    }
+    .detail-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .detail-row:last-of-type { border-bottom: none; }
+    .detail-row .lbl { color: var(--muted); }
+    .detail-row .val { font-weight: 500; }
+    .modal-actions {
+      display: flex; gap: 8px;
+      margin-top: 1.2rem;
+    }
+    .btn-confirm {
+      flex: 1; padding: 10px;
+      background: var(--green); color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-confirm:hover { background: var(--green-dark); }
+    .btn-confirm:disabled { background: #9FE1CB; cursor: not-allowed; }
+    .btn-cancel-modal {
+      flex: 1; padding: 10px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer; color: var(--muted);
+      transition: background 0.15s;
+    }
+    .btn-cancel-modal:hover { background: var(--bg); }
+    .btn-delete {
+      flex: 1; padding: 10px;
+      background: #ef4444; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+    }
+    .btn-delete:hover { background: #dc2626; }
+
+    /* MIS RESERVAS */
+    .reservas-list { display: flex; flex-direction: column; gap: 10px; }
+    .reserva-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .reserva-card .info { flex: 1; }
+    .reserva-card .pista-name {
+      font-weight: 500; font-size: 14px;
+    }
+    .reserva-card .fecha-hora {
+      font-size: 12px; color: var(--muted); margin-top: 3px;
+    }
+    .reserva-card .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      background: var(--green-light);
+      color: var(--green-dark);
+    }
+    .reserva-card .badge.past {
+      background: #f3f4f6;
+      color: var(--muted);
+    }
+    .btn-cancelar-res {
+      padding: 6px 14px;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      background: none;
+      font-size: 12px;
+      color: #dc2626;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s;
+    }
+    .btn-cancelar-res:hover { background: #fee2e2; }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .empty-icon {
+      font-size: 40px; margin-bottom: 10px;
+      opacity: 0.3;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--green);
+      color: #fff;
+      padding: 11px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.error { background: #ef4444; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* LOADING */
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      main { padding: 1.5rem 1rem; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <ellipse cx="12" cy="12" rx="9" ry="9" stroke="#fff" stroke-width="1.5"/>
+        <line x1="3" y1="12" x2="21" y2="12" stroke="#fff" stroke-width="1.5"/>
+        <path d="M5 7.5 Q12 10 19 7.5" stroke="#fff" stroke-width="1.2" fill="none"/>
+        <path d="M5 16.5 Q12 14 19 16.5" stroke="#fff" stroke-width="1.2" fill="none"/>
+      </svg>
+    </div>
+    <span class="brand-name">PadelFlow</span>
+  </div>
+  <div class="nav-right">
+    <button class="nav-tab active" onclick="showView('reservar')">Reservar pista</button>
+    <button class="nav-tab" onclick="showView('mis-reservas')">Mis reservas</button>
+    <div class="user-pill">
+      <div class="avatar" id="user-avatar">--</div>
+      <span id="user-name">Usuario</span>
+    </div>
+    <button class="btn-logout" onclick="logout()">Salir</button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ── VIEW: RESERVAR ── -->
+  <div class="view active" id="view-reservar">
+
+    <div class="stats-row">
+      <div class="stat-card highlight">
+        <div class="num" id="stat-libres">—</div>
+        <div class="lbl">Pistas libres hoy</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="stat-mis">—</div>
+        <div class="lbl">Mis reservas activas</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">4</div>
+        <div class="lbl">Pistas disponibles</div>
+      </div>
+    </div>
+
+    <div class="section-label">Selecciona día y pista</div>
+
+    <div class="date-controls">
+      <button class="btn-nav" onclick="cambiarSemana(-1)">&#8249;</button>
+      <div class="date-display" id="week-label">Semana del 14 abr</div>
+      <button class="btn-nav" onclick="cambiarSemana(1)">&#8250;</button>
+    </div>
+
+    <div class="day-selector" id="day-selector"></div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#dcfce7; border:1px solid #5DCAA5;"></div>
+        Tu reserva
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#f3f4f6; border:1px solid #d1d5db;"></div>
+        Ocupado
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#fff; border:1px solid #e5e7eb;"></div>
+        Libre
+      </div>
+    </div>
+
+    <div class="grid-wrap">
+      <div class="grid" id="grid"></div>
+    </div>
+
+  </div>
+
+  <!-- ── VIEW: MIS RESERVAS ── -->
+  <div class="view" id="view-mis-reservas">
+    <div class="section-label" style="margin-bottom:1.5rem;">Mis reservas</div>
+    <div id="reservas-container"><div class="loading">Cargando...</div></div>
+  </div>
+
+</main>
+
+<!-- MODAL RESERVA -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal-box">
+    <h3 id="modal-title">Confirmar reserva</h3>
+    <div class="detail-row"><span class="lbl">Pista</span><span class="val" id="m-pista">—</span></div>
+    <div class="detail-row"><span class="lbl">Fecha</span><span class="val" id="m-fecha">—</span></div>
+    <div class="detail-row"><span class="lbl">Hora</span><span class="val" id="m-hora">—</span></div>
+    <div class="detail-row"><span class="lbl">Duración</span><span class="val">90 minutos</span></div>
+    <div class="detail-row"><span class="lbl">Precio</span><span class="val">24,00 €</span></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'http://localhost:8080/api';
+
+  // ── AUTH ──
+  const token = localStorage.getItem('token');
+  if (!token) window.location.href = 'index.html';
+
+  const userName = localStorage.getItem('userName') || 'Usuario';
+  document.getElementById('user-name').textContent = userName;
+  const initials = userName.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('user-avatar').textContent = initials;
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = 'index.html';
+  }
+
+  function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+  }
+
+  // ── VISTAS ──
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    event.target.classList.add('active');
+    if (name === 'mis-reservas') cargarMisReservas();
+  }
+
+  // ── DATOS ──
+  const COURTS = [];     // se llenarán desde la API
+  const TIMES = ['09:00','10:30','12:00','13:30','16:00','17:30','19:00','20:30'];
+  const DAYS  = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  const DAYS_FULL = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  const MONTHS = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  let weekOffset  = 0;
+  let selectedDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+  let disponibilidad = {};  // { "pistaId-HH:MM": true/false }
+  let misReservasIds = {};  // { "pistaId-HH:MM": reservaId }
+  let pistasData = [];
+  let pendingSlot = null;
+
+  // ── FECHA ACTUAL ──
+  function getBaseMonday() {
+    const today = new Date();
+    const day = today.getDay() || 7;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - day + 1 + weekOffset * 7);
+    monday.setHours(0,0,0,0);
+    return monday;
+  }
+
+  function getSelectedDate() {
+    const monday = getBaseMonday();
+    const d = new Date(monday);
+    d.setDate(d.getDate() + selectedDay);
+    return d;
+  }
+
+  function formatDate(d) {
+    return d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' +
+      String(d.getDate()).padStart(2,'0');
+  }
+
+  function endTime(t) {
+    const [h, m] = t.split(':').map(Number);
+    const end = new Date(2000,0,1,h,m+90);
+    return String(end.getHours()).padStart(2,'0') + ':' + String(end.getMinutes()).padStart(2,'0');
+  }
+
+  // ── CARGAR PISTAS ──
+async function cargarPistas() {
+  if (pistasData.length > 0) return; // ya cargadas, no repetir
+  try {
+    const res = await fetch(`${API}/pistas`, { headers: authHeaders() });
+    if (!res.ok) throw new Error();
+    pistasData = await res.json();
+  } catch {
+    pistasData = [
+      { id: 1, nombre: 'Pista 1' },
+      { id: 2, nombre: 'Pista 2' },
+      { id: 3, nombre: 'Pista 3' },
+      { id: 4, nombre: 'Pista 4' },
+    ];
+  }
+}
+
+  // ── CARGAR DISPONIBILIDAD ──
+  async function cargarDisponibilidad() {
+    const fecha = formatDate(getSelectedDate());
+    disponibilidad = {};
+    misReservasIds = {};
+
+    await Promise.all(pistasData.map(async pista => {
+      try {
+        const res = await fetch(
+          `${API}/reservas/disponibilidad?pistaId=${pista.id}&fecha=${fecha}`,
+          { headers: authHeaders() }
+        );
+        if (!res.ok) return;
+        const slots = await res.json();
+        // slots: [{ hora: "09:00", libre: true, miReservaId: null }]
+        slots.forEach(s => {
+          const key = `${pista.id}-${s.hora}`;
+          disponibilidad[key] = s.libre;
+          if (s.miReservaId) misReservasIds[key] = s.miReservaId;
+        });
+      } catch { /* sin datos => libre por defecto */ }
+    }));
+  }
+
+  // ── RENDERIZAR ──
+  async function renderAll() {
+    renderWeekLabel();
+    renderDays();
+    await cargarDisponibilidad();
+    renderGrid();
+    updateStats();
+  }
+
+  function renderWeekLabel() {
+    const monday = getBaseMonday();
+    const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+    document.getElementById('week-label').textContent =
+      `${monday.getDate()} ${MONTHS[monday.getMonth()]} – ${sunday.getDate()} ${MONTHS[sunday.getMonth()]}`;
+  }
+
+  function renderDays() {
+    const monday = getBaseMonday();
+    const sel = document.getElementById('day-selector');
+    sel.innerHTML = '';
+    DAYS.forEach((d, i) => {
+      const date = new Date(monday); date.setDate(monday.getDate() + i);
+      const btn = document.createElement('button');
+      btn.className = 'day-btn' + (i === selectedDay ? ' active' : '');
+      btn.innerHTML = `${d} <span style="opacity:0.7;font-size:11px;">${date.getDate()}</span>`;
+      btn.onclick = () => { selectedDay = i; renderAll(); };
+      sel.appendChild(btn);
+    });
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById('grid');
+    const cols = 1 + pistasData.length;
+    grid.style.gridTemplateColumns = `70px ${pistasData.map(() => 'minmax(0,1fr)').join(' ')}`;
+    grid.innerHTML = '';
+
+    // Header row
+    const emptyH = makeCell('', 'col-header');
+    grid.appendChild(emptyH);
+    pistasData.forEach(p => grid.appendChild(makeCell(p.nombre, 'col-header')));
+
+    // Slot rows
+    TIMES.forEach(time => {
+      grid.appendChild(makeCell(time, 'time-col'));
+      pistasData.forEach(pista => {
+        const key = `${pista.id}-${time}`;
+        const libre = disponibilidad[key] !== false;
+        const mine  = !!misReservasIds[key];
+
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell slot';
+
+        if (mine) {
+          cell.classList.add('mine');
+          cell.innerHTML = `<div class="slot-inner"><div class="slot-text mine-t">Tu reserva</div></div>`;
+          cell.onclick = () => openModal(pista, time, true, misReservasIds[key]);
+        } else if (!libre) {
+          cell.classList.add('occupied');
+          cell.innerHTML = `<div class="slot-inner"><div class="slot-text occupied-t">Ocupado</div></div>`;
+        } else {
+          cell.innerHTML = `<div class="slot-inner"><div class="slot-text free">Libre</div></div>`;
+          cell.onclick = () => openModal(pista, time, false, null);
+        }
+
+        grid.appendChild(cell);
+      });
+    });
+  }
+
+  function makeCell(text, extraClass) {
+    const d = document.createElement('div');
+    d.className = 'grid-cell ' + extraClass;
+    d.textContent = text;
+    return d;
+  }
+
+  function updateStats() {
+    let libres = 0, total = TIMES.length * pistasData.length;
+    pistasData.forEach(p => {
+      TIMES.forEach(t => {
+        const key = `${p.id}-${t}`;
+        if (disponibilidad[key] !== false) libres++;
+      });
+    });
+    document.getElementById('stat-libres').textContent = libres;
+    document.getElementById('stat-mis').textContent = Object.keys(misReservasIds).length;
+  }
+
+  // ── MODAL ──
+  function openModal(pista, hora, isMine, reservaId) {
+    pendingSlot = { pista, hora, isMine, reservaId };
+    const fecha = getSelectedDate();
+    document.getElementById('m-pista').textContent = pista.nombre;
+    document.getElementById('m-fecha').textContent =
+      `${DAYS_FULL[selectedDay]}, ${fecha.getDate()} de ${MONTHS[fecha.getMonth()]}`;
+    document.getElementById('m-hora').textContent = `${hora} – ${endTime(hora)}`;
+    document.getElementById('modal-title').textContent = isMine ? 'Cancelar reserva' : 'Confirmar reserva';
+
+    const actions = document.getElementById('modal-actions');
+    if (isMine) {
+      actions.innerHTML = `
+        <button class="btn-cancel-modal" onclick="closeModal()">Volver</button>
+        <button class="btn-delete" onclick="cancelarReserva(${reservaId})">Cancelar reserva</button>`;
+    } else {
+      actions.innerHTML = `
+        <button class="btn-cancel-modal" onclick="closeModal()">Cancelar</button>
+        <button class="btn-confirm" id="btn-confirm-modal" onclick="confirmarReserva()">Confirmar reserva</button>`;
+    }
+
+    document.getElementById('modal-bg').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal-bg').classList.remove('open');
+    pendingSlot = null;
+  }
+
+  async function confirmarReserva() {
+    if (!pendingSlot) return;
+    const btn = document.getElementById('btn-confirm-modal');
+    btn.disabled = true; btn.textContent = 'Reservando...';
+
+    const fecha = formatDate(getSelectedDate());
+    try {
+      const res = await fetch(`${API}/reservas`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          pistaId: pendingSlot.pista.id,
+          fecha,
+          hora: pendingSlot.hora
+        })
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.mensaje || 'No se pudo reservar');
+      }
+      closeModal();
+      showToast('¡Pista reservada!');
+      await renderAll();
+    } catch (e) {
+      showToast(e.message, true);
+      btn.disabled = false; btn.textContent = 'Confirmar reserva';
+    }
+  }
+
+  async function cancelarReserva(reservaId) {
+    try {
+      const res = await fetch(`${API}/reservas/${reservaId}`, {
+        method: 'DELETE', headers: authHeaders()
+      });
+      if (!res.ok) throw new Error('No se pudo cancelar');
+      closeModal();
+      showToast('Reserva cancelada');
+      await renderAll();
+    } catch (e) {
+      showToast(e.message, true);
+    }
+  }
+
+  // ── MIS RESERVAS ──
+  async function cargarMisReservas() {
+    const container = document.getElementById('reservas-container');
+    container.innerHTML = '<div class="loading">Cargando...</div>';
+    try {
+      const res = await fetch(`${API}/reservas/mis-reservas`, { headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      const reservas = await res.json();
+      renderMisReservas(reservas);
+    } catch {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">●</div>No se pudieron cargar las reservas.</div>';
+    }
+  }
+
+  function renderMisReservas(reservas) {
+    const container = document.getElementById('reservas-container');
+    if (!reservas.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">○</div>No tienes reservas aún.<br>¡Ve a reservar una pista!</div>';
+      return;
+    }
+    const now = new Date();
+    const sorted = [...reservas].sort((a, b) => new Date(a.fecha + 'T' + a.hora) - new Date(b.fecha + 'T' + b.hora));
+    container.innerHTML = '<div class="reservas-list">' +
+      sorted.map(r => {
+        const dt = new Date(r.fecha + 'T' + r.hora);
+        const past = dt < now;
+        const [y, m, d] = r.fecha.split('-');
+        const fechaStr = `${d}/${m}/${y}`;
+        return `
+          <div class="reserva-card">
+            <div class="info">
+              <div class="pista-name">${r.pistaNombre}</div>
+              <div class="fecha-hora">${fechaStr} · ${r.hora} – ${endTime(r.hora)}</div>
+            </div>
+            <div class="badge ${past ? 'past' : ''}">${past ? 'Completada' : 'Confirmada'}</div>
+            ${!past ? `<button class="btn-cancelar-res" onclick="cancelarDesdeListado(${r.id})">Cancelar</button>` : ''}
+          </div>`;
+      }).join('') +
+    '</div>';
+  }
+
+  async function cancelarDesdeListado(id) {
+    if (!confirm('¿Cancelar esta reserva?')) return;
+    try {
+      const res = await fetch(`${API}/reservas/${id}`, { method: 'DELETE', headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      showToast('Reserva cancelada');
+      cargarMisReservas();
+    } catch { showToast('Error al cancelar', true); }
+  }
+
+  // ── NAVEGACIÓN SEMANA ──
+  function cambiarSemana(dir) {
+    weekOffset += dir; renderAll();
+  }
+
+  // ── TOAST ──
+  function showToast(msg, error = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (error ? ' error' : '') + ' show';
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── CERRAR MODAL AL CLICK FUERA ──
+  document.getElementById('modal-bg').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-bg')) closeModal();
+  });
+
+  // ── INIT ──
+  (async () => {
+    await cargarPistas();
+    console.log('Pistas cargadas:', pistasData.length, pistasData);
+    await renderAll();
+  })();
+</script>
+
+</body>
+</html>
